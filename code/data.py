@@ -45,7 +45,7 @@ def create_set(path_list, target_idxs, in_h, in_b, out_h, out_b):
 def get_data(img_path, target_idxs,in_h, in_b, out_h, out_b):
     
     print("="*40 +"\n\t Getting Training data\n"+ "="*40)
-    train_imgs, train_labels = create_set(img_path[:9], target_idxs, in_h, in_b, out_h, out_b)
+    train_imgs, train_labels = create_set(img_path[:1], target_idxs, in_h, in_b, out_h, out_b)
     print("="*40 +"\n\t Getting Test data\n"+ "="*40)
     test_imgs, test_labels = create_set(img_path[9:], target_idxs, in_h, in_b, out_h, out_b)
     print("\n"+"-"*60)
