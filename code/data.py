@@ -21,15 +21,18 @@ def create_set(path_list, target_idxs, in_h, in_b, out_h, out_b):
         mat = scipy.io.loadmat(path)
         x = mat['images']
         y = mat['manualFluid1']
-        x = torch.from_numpy(x)
-        y = torch.from_numpy(y)
+        # x = torch.from_numpy(x)
+        # y = torch.from_numpy(y)
         
         # Batch first
-        x = x.permute(2,0,1)/255
-        x = x.reshape(x.size(0), in_b, in_h)
-        y = y.permute(2,0,1)
+        x = x.transpose(2,0,1)/255
+        x = resize(x, (x.shape[0],in_b, in_h))
+        x = torch.from_numpy(x)
+        
+        y = y.transpose(2,0,1)
+        y = resize(y, (y.shape[0],out_b, out_h))
+        y = torch.from_numpy(y)
         y = torch.where(y==0, torch.zeros(y.shape), torch.ones(y.shape))
-        y = y.reshape(y.size(0), out_b, out_h)
         
         for idx in target_idxs:
             imgs += [torch.unsqueeze(x[idx],0)]

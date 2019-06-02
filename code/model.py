@@ -36,15 +36,23 @@ class UNet(nn.Module):
         
     def forward(self, input):
         # Encoding sequence
+        # print(input.size())
         encoded1 = self.encoder1(input)
         pooled1 = self.max_pool(encoded1)
+        # print(encoded1.size())
+        # print(pooled1.size())
         encoded2 = self.encoder2(pooled1)
         pooled2 = self.max_pool(encoded2)
+        # print(encoded2.size())
+        # print(pooled2.size())
         encoded3 = self.encoder3(pooled2)
         pooled3 = self.max_pool(encoded3)
+        # print(encoded3.size())
+        # print(pooled3.size())
         encoded_final = self.bridge(pooled3)
         deconv = self.deconv(encoded_final)
-        
+        # print(encoded_final.size())
+        # print(deconv.size(), encoded3.size())
         # Decoding Sequence
         decoder_ip_3 = self.crop_and_concat(deconv, encoded3, crop = True)
         decoded3 = self.decoder3(decoder_ip_3)
@@ -52,15 +60,12 @@ class UNet(nn.Module):
         decoded2 = self.decoder2(decoder_ip_2)
         decoder_ip_1 = self.crop_and_concat(decoded2, encoded1, crop = True)
         output = self.final(decoder_ip_1)
-        
         return output  
   
         
     def encoder(self, in_ch, out_ch, kernel_size = 3, final = False):
         relu = nn.ReLU()
         bn = nn.BatchNorm2d(out_ch)
-        pool = nn.MaxPool2d(kernel_size = 2)
-        deconv = torch.nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=3, stride=2, padding=1, output_padding=1)
         
         if not final:
             encoder_orig = nn.Sequential(nn.Conv2d(in_channels = in_ch, out_channels = out_ch, kernel_size= kernel_size), relu, bn, 
@@ -81,19 +86,23 @@ class UNet(nn.Module):
         
         if not final:
             decoder_block = nn.Sequential(nn.Conv2d(in_channels = in_ch, out_channels = internal_ch, kernel_size= kernel_size), relu, nn.BatchNorm2d(internal_ch), 
-                                      nn.Conv2d(in_channels = internal_ch, out_channels = out_ch, kernel_size= kernel_size), relu, nn.BatchNorm2d(internal_ch),
+                                      nn.Conv2d(in_channels = internal_ch, out_channels = internal_ch, kernel_size= kernel_size), relu, nn.BatchNorm2d(internal_ch),
                                       nn.ConvTranspose2d(in_channels=internal_ch, out_channels=out_ch, kernel_size=3, stride=2, padding=1, output_padding=1))
         if final:
            decoder_block = nn.Sequential(nn.Conv2d(in_channels = in_ch, out_channels = internal_ch, kernel_size= kernel_size), relu, nn.BatchNorm2d(internal_ch), 
-                                      nn.Conv2d(in_channels = internal_ch, out_channels = out_ch, kernel_size= kernel_size), relu, nn.BatchNorm2d(internal_ch),
-                                      nn.Conv2d(in_channels = internal_ch, out_channels = out_ch, kernel_size= kernel_size), relu, nn.BatchNorm2d(out_ch)) 
+                                      nn.Conv2d(in_channels = internal_ch, out_channels = internal_ch, kernel_size= kernel_size), relu, nn.BatchNorm2d(internal_ch),
+                                      nn.Conv2d(in_channels = internal_ch, out_channels = out_ch, kernel_size= kernel_size, padding =1), relu, nn.BatchNorm2d(out_ch))
         
         return decoder_block
     
     
     
     def crop_and_concat(self, upsampled, bypass, crop=False):
+        # print("upsampled", upsampled.size())
+        # print("bypass", bypass.size())
         if crop:
             c = (bypass.size()[2] - upsampled.size()[2]) // 2
             bypass = torch.nn.functional.pad(bypass, (-c, -c, -c, -c))
+        # print("upsampled", upsampled.size())
+        # print("bypass", bypass.size())
         return torch.cat((upsampled, bypass), 1)

@@ -41,12 +41,10 @@ class UNet_main():
         m = x_val.shape[0]
         with torch.no_grad():
             out = model(x_val)
-        # outputs.shape =(batch_size, n_classes, img_cols, img_rows) 
-        # outputs = outputs.permute(0, 2, 3, 1)
-        # outputs.shape =(batch_size, img_cols, img_rows, n_classes) 
-        out = out.permute(0, 2, 3, 1)
-        out = torch.reshape(out, (-1, args.out_ch))
-        labels = torch.reshape(y_val, (-1))
+        
+        # out = out.permute(0, 2, 3, 1)
+        out = out.resize(m*args.out_height*args.out_breadth, args.out_ch)
+        labels = y_val.resize(m*width_out*height_out)
         loss = nn.CrossEntropyLoss(out, labels)
         
         correct = out.long().eq(labels.long()).cpu().sum().item()
@@ -61,6 +59,7 @@ class UNet_main():
         criterion = nn.CrossEntropyLoss()
         
         iters = np.ceil(self.train_imgs.size(0)/args.batch_size).astype(int)
+        print("Steps per epoch = ", iters)
         best_acc = 0
         test_imgs = self.test_imgs
         test_labels = self.test_labels
@@ -80,16 +79,17 @@ class UNet_main():
                 
                 # Get batches
                 train_batch_imgs = train_imgs[start:stop].float()
-                train_batch_labels = train_labels[start: stop].float()
+                train_batch_labels = train_labels[start: stop].long()
                 
                 # Get predictions
                 optimizer.zero_grad()
                 out = model(train_batch_imgs)
                 
                 # Calculate Loss
-                out = torch.reshape(out, (-1, args.out_ch))
-                out = out.permute(0, 2, 3, 1)
-                train_batch_labels = torch.reshape(train_batch_labels, (-1))
+                # out = out.permute(0, 2, 3, 1)
+                out = out.resize(args.batch_size*args.out_height*args.out_breadth, 2)
+                # print(train_batch_labels.size())
+                train_batch_labels = train_batch_labels.resize(args.batch_size*args.out_height*args.out_breadth)
                 loss = criterion(out, train_batch_labels)
                 
                 # Backprop
@@ -119,16 +119,16 @@ class UNet_main():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--save_path", help="Path to save the model", type=str, default = './wic_results')
-    parser.add_argument("--in_breadth", help = "height dimension of i/p image", type= int, default = 496)
-    parser.add_argument("--in_height", help = "height dimension of i/p image", type= int, default = 768)
-    parser.add_argument("--out_height", help = "height dimension of i/p image", type= int, default = 496)
-    parser.add_argument("--out_breadth", help = "height dimension of i/p image", type= int, default = 768)
-    parser.add_argument("--batch_size", help = "height dimension of i/p image", type= int, default = 3)
+    parser.add_argument("--in_breadth", help = "height dimension of i/p image", type= int, default = 284)#496
+    parser.add_argument("--in_height", help = "height dimension of i/p image", type= int, default = 284)#768
+    parser.add_argument("--out_height", help = "height dimension of i/p image", type= int, default = 196)
+    parser.add_argument("--out_breadth", help = "height dimension of i/p image", type= int, default = 196)
+    parser.add_argument("--batch_size", help = "height dimension of i/p image", type= int, default = 9)
     parser.add_argument("--kernel_size", help = "size of convolution filter", type= int, default = 3)
     parser.add_argument("--in_ch", help = "No. of channels of input image (RGB = 3, Gray = 1)", type= int, default = 1)
     parser.add_argument("--out_ch", help = "No. of segmentation tags in labels", type= int, default = 2)
     parser.add_argument("--epochs", help = "height dimension of i/p image", type= int, default = 1000)
-    parser.add_argument("--eval_every", help = "Evaluaiton frequency", type= int, default = 100)
+    parser.add_argument("--eval_every", help = "Evaluaiton frequency", type= int, default = 1)
     args = parser.parse_known_args()[0]
     
     in_h = args.in_height
