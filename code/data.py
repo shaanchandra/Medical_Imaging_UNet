@@ -10,8 +10,7 @@ import scipy.io
 from skimage.transform import resize
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-# import Progressbar
-# progress = progressbar.ProgressBar()
+
 
 def create_set(path_list, target_idxs, in_h, in_b, out_h, out_b):
     imgs = []
@@ -21,9 +20,7 @@ def create_set(path_list, target_idxs, in_h, in_b, out_h, out_b):
         mat = scipy.io.loadmat(path)
         x = mat['images']
         y = mat['manualFluid1']
-        # x = torch.from_numpy(x)
-        # y = torch.from_numpy(y)
-        
+
         # Batch first
         x = x.transpose(2,0,1)/255
         x = resize(x, (x.shape[0],in_b, in_h))
@@ -44,9 +41,10 @@ def create_set(path_list, target_idxs, in_h, in_b, out_h, out_b):
 
 def get_data(img_path, target_idxs,in_h, in_b, out_h, out_b):
     
-    print("="*40 +"\n\t Getting Training data\n"+ "="*40)
-    train_imgs, train_labels = create_set(img_path[:1], target_idxs, in_h, in_b, out_h, out_b)
-    print("="*40 +"\n\t Getting Test data\n"+ "="*40)
+    print("="*70 +"\n\t\t\t Preparing Data\n"+ "="*70)
+    print("\nGetting Train data...\n" + "-"*40)
+    train_imgs, train_labels = create_set(img_path[:9], target_idxs, in_h, in_b, out_h, out_b)
+    print("\n\nGetting Test data...\n" + "-"*40)
     test_imgs, test_labels = create_set(img_path[9:], target_idxs, in_h, in_b, out_h, out_b)
     print("\n"+"-"*60)
     print("No. of training examples: ", train_imgs.size(0))
