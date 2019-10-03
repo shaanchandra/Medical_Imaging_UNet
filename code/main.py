@@ -163,7 +163,7 @@ if __name__ == '__main__':
     parser.add_argument("--out_ch", help = "No. of segmentation tags in labels", type= int, default = 2)
     parser.add_argument("--epochs", help = "height dimension of i/p image", type= int, default = 1000)
     parser.add_argument("--lr", help = "learning rate", type= float, default = 0.01)
-    parser.add_argument("--eval_every", help = "Evaluaiton frequency", type= int, default = 1)
+    parser.add_argument("--eval_every", help = "Evaluation frequency", type= int, default = 1)
     args = parser.parse_known_args()[0]
     config = args.__dict__
     config['device'] = device
